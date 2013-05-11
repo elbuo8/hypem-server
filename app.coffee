@@ -28,14 +28,14 @@ app.configure "development", ->
   app.use express.errorHandler()
 
 app.get '/', (req, res) ->
-  redis.get req.query.metaid, (error, reply) ->
+  redis.get req.query.mediaid, (error, reply) ->
     if reply
-      res.send reply
+      res.send {url: reply}
     else
-      hypem.getUrl req.query.metaid, (error, url) ->
+      hypem.getUrl req.query.mediaid, (error, url) ->
         if url
-          res.send url
-          redis.set req.query.metaid, url
+          res.send {url: url}
+          redis.set req.query.mediaid, url
         else
           res.send error
 
