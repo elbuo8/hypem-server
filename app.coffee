@@ -33,8 +33,11 @@ app.get '/', (req, res) ->
       res.send reply
     else
       hypem.getUrl req.query.metaid, (error, url) ->
-        res.send url if not error
-        res.send error if error
+        if url
+          res.send url
+          redis.set req.query.metaid, url
+        else
+          res.send error
 
 http.createServer(app).listen app.get("port"), ->
   console.log "Express server listening on port " + app.get("port")
