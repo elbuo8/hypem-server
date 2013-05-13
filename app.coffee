@@ -29,16 +29,19 @@ app.configure "development", ->
   app.use express.errorHandler()
 
 app.get '/', (req, res) ->
-  redis.get req.query.mediaid, (error, reply) ->
-    if reply
-      res.send {url: reply}
-    else
-      hypem.getUrl req.query.mediaid, (error, url) ->
-        if url
-          res.send {url: url}
-          redis.set req.query.mediaid, url
-        else
-          res.send error
+  if req.query.mediaid
+    redis.get req.query.mediaid, (error, reply) ->
+      if reply
+        res.jsonp {url: reply}
+      else
+        hypem.getUrl req.query.mediaid, (error, url) ->
+          if url
+            res.jsonp {url: url}
+            redis.set req.query.mediaid, url
+          else
+            res.jsonp {error: 'No Url found'}
+  else
+    res.jsonp {error: 'No mediaid key provided'}
 
 http.createServer(app).listen app.get("port"), ->
   console.log "Express server listening on port " + app.get("port")
