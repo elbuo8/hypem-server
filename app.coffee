@@ -6,6 +6,7 @@ express = require("express")
 http = require("http")
 path = require("path")
 hypem = require 'hypem-scrapper'
+async = require 'async'
 app = express()
 
 
@@ -38,6 +39,23 @@ app.get '/', (req, res) ->
           redis.set req.query.mediaid, url
         else
           res.send error
+
+app.post '/playlist', (req, res) ->
+  async.map req.body.playlist, (mediaid, callback) ->
+      redis.get mediaid, (error, reply) ->
+        if reply
+          callback(null, reply)
+        else
+          hypem.getUrl mediaid, (error, url) ->
+            if url
+              redis.set mediaid, url
+              callback(null, url)
+            else
+              callback(error, null)
+  , (error, results) ->
+    res.json {playlist: results}
+
+
 
 http.createServer(app).listen app.get("port"), ->
   console.log "Express server listening on port " + app.get("port")
