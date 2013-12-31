@@ -7,6 +7,7 @@ http = require("http")
 path = require("path")
 hypem = require 'hypem-scrapper'
 async = require 'async'
+cors = require('cors')
 app = express()
 
 
@@ -22,8 +23,9 @@ app.configure ->
   app.use express.logger("dev")
   app.use express.bodyParser()
   app.use express.methodOverride()
+  app.use cors()
   app.use app.router
-  app.use express.static(path.join(__dirname, "public"))
+app.use express.static(path.join(__dirname, "public"))
 
 app.configure "development", ->
   app.use express.errorHandler()
@@ -32,16 +34,16 @@ app.get '/', (req, res) ->
   if req.query.mediaid
     redis.get req.query.mediaid, (error, reply) ->
       if reply
-        res.jsonp {url: reply}
+        res.json 200, {url: reply}
       else
         hypem.getUrl req.query.mediaid, (error, url) ->
           if url
-            res.jsonp {url: url}
+            res.json 200, {url: url}
             redis.set req.query.mediaid, url
           else
-            res.jsonp {error: 'No Url found'}
+            res.json 404, {error: 'No Url found'}
   else
-    res.jsonp {error: 'No mediaid key provided'}
+    res.json 404, {error: 'No mediaid key provided'}
 
 http.createServer(app).listen app.get("port"), ->
   console.log "Express server listening on port " + app.get("port")
